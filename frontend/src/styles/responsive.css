@@ -1,0 +1,128 @@
+/* src/styles/responsive.css */
+
+/* 
+ * 全局响应式变量定义
+ * 基于 PC 端常见分辨率划分
+ */
+:root {
+  /* 默认值 (适配 1366x768 及以下小屏笔记本) */
+  --sider-width: 200px;
+  --header-height: 48px;
+  --content-padding: 16px;
+  --card-padding: 16px;
+  --font-size-base: 14px;
+  --border-radius-base: 4px;
+  
+  /* 布局容器最大宽度 - 避免在大屏上过于拉伸 */
+  --layout-max-width: 100%;
+}
+
+/* 中屏适配 (1440px - 1920px) 
+ * 场景：主流台式机显示器、高分屏笔记本
+ */
+@media screen and (min-width: 1440px) {
+  :root {
+    --sider-width: 220px;
+    --header-height: 56px;
+    --content-padding: 24px;
+    --card-padding: 24px;
+    --font-size-base: 14px; /* 保持 14px 但增加间距 */
+  }
+}
+
+/* 大屏适配 (> 1920px) 
+ * 场景：2K/4K 显示器、iMac
+ */
+@media screen and (min-width: 1921px) {
+  :root {
+    --sider-width: 256px;
+    --header-height: 64px;
+    --content-padding: 32px;
+    --card-padding: 32px;
+    --font-size-base: 16px; /* 适当增大字体 */
+    
+    /* 限制内容区域最大宽度，防止在大屏上阅读体验下降 */
+    --layout-max-width: 1920px; 
+  }
+}
+
+/* 全局重置与基础样式适配 */
+body {
+  font-size: var(--font-size-base);
+  min-width: 1024px; /* 保证 PC 端最小浏览宽度，避免布局崩坏 */
+  overflow-x: auto;  /* 小于最小宽度时出现横向滚动条 */
+}
+
+/* 优化 Ant Design 组件在不同屏幕下的表现 */
+.ant-card-body {
+  padding: var(--card-padding) !important;
+}
+
+.ant-layout-header {
+  height: var(--header-height) !important;
+  line-height: var(--header-height) !important;
+}
+
+/* 移除强制覆盖 Sider 宽度的样式，交给 Layout 组件自身控制 */
+/* 
+.ant-layout-sider {
+  flex: 0 0 var(--sider-width) !important;
+  max-width: var(--sider-width) !important;
+  min-width: var(--sider-width) !important;
+  width: var(--sider-width) !important;
+} 
+*/
+
+/* 响应式容器类 - 用于包裹页面主体内容 */
+.responsive-wrapper {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  padding: var(--content-padding);
+  transition: all 0.3s ease;
+}
+
+/* 针对表格的优化：小屏下紧凑展示 */
+@media screen and (max-width: 1366px) {
+  .ant-table {
+    font-size: 13px;
+  }
+  .ant-btn {
+    padding: 4px 12px;
+  }
+  
+  /* Modal 适配小屏 */
+  .ant-modal {
+    max-width: 90vw;
+    margin: 0 auto;
+    padding-bottom: 24px;
+  }
+}
+
+/* 浏览器兼容性修复 */
+
+/* Firefox 滚动条美化 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Edge/Chrome 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* 修复 Antd Upload 在某些旧版浏览器中的 flex 布局问题 */
+.ant-upload-list-item {
+  display: flex;
+  align-items: center;
+}
+

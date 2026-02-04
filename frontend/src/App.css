@@ -1,0 +1,8 @@
+/* 
+  清空默认的 Vite 样式，避免干扰 Ant Design 布局 
+  Ant Design 会自动处理大部分全局样式
+*/
+#root {
+  width: 100%;
+  height: 100%;
+}

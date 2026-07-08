@@ -131,21 +131,23 @@ class CRUDPurchaseOrder:
         for item in order.items:
             product = await crud_product.get(db, id=item.product_id)
             if product:
-                before_qty = product.stock_qty
-                await crud_product.update_stock(db, product.id, item.quantity - item.received_qty)
-                item.received_qty = item.quantity
-                
-                inventory = Inventory(
-                    product_id=product.id,
-                    change_type="purchase",
-                    change_qty=item.quantity,
-                    before_qty=before_qty,
-                    after_qty=before_qty + item.quantity,
-                    related_order_no=order.order_no,
-                    operator=operator,
-                    remark=f"采购入库: {order.order_no}"
-                )
-                db.add(inventory)
+                actual_qty = item.quantity - item.received_qty
+                if actual_qty > 0:
+                    before_qty = product.stock_qty
+                    await crud_product.update_stock(db, product.id, actual_qty)
+                    item.received_qty = item.quantity
+                    
+                    inventory = Inventory(
+                        product_id=product.id,
+                        change_type="purchase",
+                        change_qty=actual_qty,
+                        before_qty=before_qty,
+                        after_qty=before_qty + actual_qty,
+                        related_order_no=order.order_no,
+                        operator=operator,
+                        remark=f"采购入库: {order.order_no}"
+                    )
+                    db.add(inventory)
         
         order.status = "completed"
         await db.commit()

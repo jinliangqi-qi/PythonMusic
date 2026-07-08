@@ -107,16 +107,20 @@ const PurchaseList: React.FC = () => {
     const colors: Record<string, string> = {
       'pending': 'orange',
       'approved': 'blue',
-      'received': 'green',
+      'delivered': 'cyan',
+      'paid': 'purple',
+      'completed': 'green',
       'cancelled': 'red',
     };
     const labels: Record<string, string> = {
       'pending': '待审核',
       'approved': '已审核',
-      'received': '已入库',
+      'delivered': '已到货',
+      'paid': '已付款',
+      'completed': '已完成',
       'cancelled': '已取消',
     };
-    return <Tag color={colors[status]}>{labels[status]}</Tag>;
+    return <Tag color={colors[status]}>{labels[status] || status}</Tag>;
   };
 
   const columns = [

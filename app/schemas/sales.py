@@ -29,8 +29,7 @@ class SalesOrderItemInfo(BaseModel):
     shipped_qty: int
     remark: Optional[str] = None
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 class SalesOrderInfo(BaseModel):
     id: int
@@ -47,5 +46,4 @@ class SalesOrderInfo(BaseModel):
     created_at: str
     updated_at: str
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}

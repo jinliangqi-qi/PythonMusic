@@ -72,11 +72,6 @@ class CRUDSalesOrder:
         return result.scalar() or 0
 
     async def create(self, db: AsyncSession, obj_in: SalesOrderCreate, operator: str = "") -> SalesOrder:
-        for item in obj_in.items:
-            product = await crud_product.get(db, id=item.product_id)
-            if not product or product.stock_qty < item.quantity:
-                raise ValueError(f"Insufficient stock for product {item.product_id}")
-        
         order_no = await self.generate_order_no()
         total_amount = sum(item.quantity * item.unit_price for item in obj_in.items)
         
@@ -91,8 +86,6 @@ class CRUDSalesOrder:
         await db.flush()
         
         for item in obj_in.items:
-            product = await crud_product.get(db, id=item.product_id)
-            
             item_obj = SalesOrderItem(
                 sales_order_id=db_obj.id,
                 product_id=item.product_id,
@@ -102,21 +95,6 @@ class CRUDSalesOrder:
                 remark=item.remark,
             )
             db.add(item_obj)
-            
-            before_qty = product.stock_qty
-            await crud_product.update_stock(db, product.id, -item.quantity)
-            
-            inventory = Inventory(
-                product_id=product.id,
-                change_type="sale",
-                change_qty=-item.quantity,
-                before_qty=before_qty,
-                after_qty=before_qty - item.quantity,
-                related_order_no=order_no,
-                operator=operator,
-                remark=f"销售出库: {order_no}"
-            )
-            db.add(inventory)
         
         await db.commit()
         await db.refresh(db_obj)
@@ -147,7 +125,25 @@ class CRUDSalesOrder:
             raise ValueError("Order must be approved to ship")
             
         for item in order.items:
+            product = await crud_product.get(db, id=item.product_id)
+            if not product or product.stock_qty < item.quantity - item.shipped_qty:
+                raise ValueError(f"Insufficient stock for product {item.product_id}")
+            
+            before_qty = product.stock_qty
+            await crud_product.update_stock(db, product.id, -(item.quantity - item.shipped_qty))
             item.shipped_qty = item.quantity
+            
+            inventory = Inventory(
+                product_id=product.id,
+                change_type="sale",
+                change_qty=-(item.quantity),
+                before_qty=before_qty,
+                after_qty=before_qty - item.quantity,
+                related_order_no=order.order_no,
+                operator=operator,
+                remark=f"销售出库: {order.order_no}"
+            )
+            db.add(inventory)
         
         order.status = "shipped"
         await db.commit()

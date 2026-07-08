@@ -23,5 +23,4 @@ class InventoryInfo(BaseModel):
     remark: Optional[str] = None
     created_at: str
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}

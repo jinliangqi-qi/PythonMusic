@@ -118,6 +118,7 @@ const SalesList: React.FC = () => {
       'pending': 'orange',
       'approved': 'blue',
       'shipped': 'cyan',
+      'paid': 'purple',
       'completed': 'green',
       'cancelled': 'red',
     };
@@ -125,10 +126,11 @@ const SalesList: React.FC = () => {
       'pending': '待审核',
       'approved': '已审核',
       'shipped': '已发货',
+      'paid': '已收款',
       'completed': '已完成',
       'cancelled': '已取消',
     };
-    return <Tag color={colors[status]}>{labels[status]}</Tag>;
+    return <Tag color={colors[status]}>{labels[status] || status}</Tag>;
   };
 
   const columns = [

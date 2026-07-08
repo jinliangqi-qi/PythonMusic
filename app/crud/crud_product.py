@@ -128,7 +128,6 @@ class CRUDProduct:
     async def update_stock(self, db: AsyncSession, id: int, delta: int) -> None:
         stmt = update(Product).where(Product.id == id).values(stock_qty=Product.stock_qty + delta)
         await db.execute(stmt)
-        await db.commit()
 
     async def get_low_stock_products(self, db: AsyncSession) -> List[Product]:
         query = select(Product).where(Product.stock_qty <= Product.min_stock)

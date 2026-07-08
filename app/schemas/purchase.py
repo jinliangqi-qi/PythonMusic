@@ -29,8 +29,7 @@ class PurchaseOrderItemInfo(BaseModel):
     received_qty: int
     remark: Optional[str] = None
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}
 
 class PurchaseOrderInfo(BaseModel):
     id: int
@@ -47,5 +46,4 @@ class PurchaseOrderInfo(BaseModel):
     created_at: str
     updated_at: str
     
-    class Config:
-        orm_mode = True
+    model_config = {"from_attributes": True}

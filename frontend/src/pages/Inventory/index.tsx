@@ -58,14 +58,14 @@ const InventoryList: React.FC = () => {
     const colors: Record<string, string> = {
       'purchase': 'green',
       'sale': 'red',
-      'adjustment': 'blue',
-      'check': 'orange',
+      'adjust': 'blue',
+      'inventory': 'orange',
     };
     const labels: Record<string, string> = {
       'purchase': '采购入库',
       'sale': '销售出库',
-      'adjustment': '库存调整',
-      'check': '盘点',
+      'adjust': '库存调整',
+      'inventory': '盘点',
     };
     return <Tag color={colors[type]}>{labels[type]}</Tag>;
   };
@@ -76,7 +76,7 @@ const InventoryList: React.FC = () => {
     { title: '变动数量', dataIndex: 'change_qty', key: 'change_qty', render: (val: number) => (
       <span style={{ color: val > 0 ? '#52c41a' : '#ff4d4f' }}>{val > 0 ? `+${val}` : val}</span>
     )},
-    { title: '变动后库存', dataIndex: 'new_stock', key: 'new_stock' },
+    { title: '变动后库存', dataIndex: 'after_qty', key: 'after_qty' },
     { title: '备注', dataIndex: 'remark', key: 'remark' },
     { title: '操作时间', dataIndex: 'created_at', key: 'created_at' },
   ];

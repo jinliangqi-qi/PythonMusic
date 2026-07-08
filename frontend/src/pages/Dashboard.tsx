@@ -24,8 +24,8 @@ const Dashboard: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await getDashboardStats();
-      setStats(response.data);
+      const data = await getDashboardStats();
+      setStats(data);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
@@ -33,8 +33,8 @@ const Dashboard: React.FC = () => {
 
   const loadLowStockProducts = async () => {
     try {
-      const response = await getLowStockProducts();
-      setLowStockProducts(response.data || []);
+      const data = await getLowStockProducts();
+      setLowStockProducts(data || []);
     } catch (error) {
       console.error('Failed to load low stock products:', error);
     }

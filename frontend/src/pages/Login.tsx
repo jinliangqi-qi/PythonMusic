@@ -123,8 +123,8 @@ const Login: React.FC = () => {
           zIndex: 1
       }}>
         <div style={{ marginBottom: 40 }}>
-            <h1 style={{ fontSize: 40, fontWeight: 700, margin: 0, color: '#1d1d1f' }}>音乐管理系统</h1>
-            <p style={{ fontSize: 17, color: '#86868b', marginTop: 8 }}>登录以管理您的音乐库</p>
+            <h1 style={{ fontSize: 40, fontWeight: 700, margin: 0, color: '#1d1d1f' }}>进销存管理系统</h1>
+            <p style={{ fontSize: 17, color: '#86868b', marginTop: 8 }}>登录以管理您的进销存业务</p>
         </div>
         
         <Form

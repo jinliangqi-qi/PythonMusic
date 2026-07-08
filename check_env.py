@@ -31,12 +31,12 @@ def check_directories():
         print(f"✅ Upload directory exists: {upload_dir}")
 
 def main():
-    print("--- Checking Music Management System Environment ---")
+    print("--- Checking Inventory Management System Environment ---")
     print(f"Python Version: {sys.version.split()[0]}")
     
     required_modules = [
-        "fastapi", "sqlalchemy", "alembic", "pydantic", 
-        "mutagen", "PIL", "aiofiles", "multipart"
+        "fastapi", "sqlalchemy", "pydantic", 
+        "PIL", "aiofiles", "multipart"
     ]
     
     for mod in required_modules:

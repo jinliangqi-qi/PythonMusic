@@ -54,7 +54,7 @@ export const useUserStore = create<UserState>()(
       }
     }),
     {
-      name: 'music-admin-storage', // localstorage key
+      name: 'inventory-admin-storage', // localstorage key
       storage: createJSONStorage(() => localStorage),
     }
   )

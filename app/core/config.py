@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # --- 基础配置 ---
-    APP_NAME: str = "Music Management System"
+    APP_NAME: str = "Inventory Management System"
     APP_ENV: str = "development"
     DEBUG: bool = False
     API_V1_STR: str = "/api/v1"
@@ -31,17 +31,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # --- 音乐文件存储配置 ---
+    # --- 文件存储配置 ---
     UPLOAD_DIR: str = "./uploads"
-    MAX_UPLOAD_SIZE: int = 52428800  # 默认 50MB
-    ALLOWED_AUDIO_EXTENSIONS: List[str] = ["mp3", "flac", "wav", "m4a"]
+    MAX_UPLOAD_SIZE: int = 52428800
     ALLOWED_IMAGE_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "webp"]
-
-    # --- OSS 配置 (可选) ---
-    OSS_ACCESS_KEY_ID: Optional[str] = None
-    OSS_ACCESS_KEY_SECRET: Optional[str] = None
-    OSS_BUCKET_NAME: Optional[str] = None
-    OSS_ENDPOINT: Optional[str] = None
 
     class Config:
         env_file = ".env"

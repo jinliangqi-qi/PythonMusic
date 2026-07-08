@@ -16,7 +16,6 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
 import { getUserInfo } from '../api/auth';
 import ResponsiveContainer from './ResponsiveContainer';
-import MusicPlayer from './MusicPlayer';
 
 const { Header, Sider, Content } = Layout;
 
@@ -244,9 +243,6 @@ const BasicLayout: React.FC = () => {
              <Outlet />
           </ResponsiveContainer>
         </Content>
-        {/* 全局播放器 */}
-        <div style={{ height: 80 }}></div> {/* 占位符，防止内容被遮挡 */}
-        <MusicPlayer />
       </Layout>
     </Layout>
   );

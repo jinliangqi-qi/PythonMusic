@@ -21,7 +21,7 @@ class LogMiddleware(BaseHTTPMiddleware):
         client_host = request.client.host if request.client else "unknown"
         
         # 针对敏感操作记录详细日志
-        is_sensitive = any(k in path for k in ["/upload", "/musics", "/auth/login"])
+        is_sensitive = any(k in path for k in ["/upload", "/auth/login"])
         
         log_msg = f"Request: {method} {path} | Client: {client_host} | Params: {query_params}"
         if is_sensitive:

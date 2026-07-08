@@ -13,7 +13,7 @@ from app.db.session import get_db, engine
 from app.db.base import Base
 from app.core.exceptions import register_exception_handlers, BusinessException
 from app.schemas.response import success, fail
-from app.api.v1.endpoints import auth, user, common, singers, albums, musics, categories, tags, sys_logs
+from app.api.v1.endpoints import auth, user, common, sys_logs, products, suppliers, customers, purchases, sales, inventory, dashboard
 from app.crud.crud_user import crud_user
 from app.schemas.user import UserCreate
 from app.core.middleware import LogMiddleware
@@ -56,12 +56,14 @@ register_exception_handlers(app)
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(user.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
 app.include_router(common.router, prefix=f"{settings.API_V1_STR}/common", tags=["common"])
-app.include_router(singers.router, prefix=f"{settings.API_V1_STR}/singers", tags=["singers"])
-app.include_router(albums.router, prefix=f"{settings.API_V1_STR}/albums", tags=["albums"])
-app.include_router(musics.router, prefix=f"{settings.API_V1_STR}/musics", tags=["musics"])
-app.include_router(categories.router, prefix=f"{settings.API_V1_STR}/categories", tags=["categories"])
-app.include_router(tags.router, prefix=f"{settings.API_V1_STR}/tags", tags=["tags"])
 app.include_router(sys_logs.router, prefix=f"{settings.API_V1_STR}/sys_logs", tags=["sys_logs"])
+app.include_router(products.router, prefix=f"{settings.API_V1_STR}/products", tags=["products"])
+app.include_router(suppliers.router, prefix=f"{settings.API_V1_STR}/suppliers", tags=["suppliers"])
+app.include_router(customers.router, prefix=f"{settings.API_V1_STR}/customers", tags=["customers"])
+app.include_router(purchases.router, prefix=f"{settings.API_V1_STR}/purchases", tags=["purchases"])
+app.include_router(sales.router, prefix=f"{settings.API_V1_STR}/sales", tags=["sales"])
+app.include_router(inventory.router, prefix=f"{settings.API_V1_STR}/inventory", tags=["inventory"])
+app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["dashboard"])
 
 @app.on_event("startup")
 async def startup_event():
@@ -93,7 +95,7 @@ async def shutdown_event():
 @limiter.limit("5/minute") # 限制每分钟 5 次请求
 async def root(request: Request):
     return success(data={
-        "message": "Welcome to Music Management System",
+        "message": "Welcome to Inventory Management System",
         "env": settings.APP_ENV,
         "docs": "/docs"
     })

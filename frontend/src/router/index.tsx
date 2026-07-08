@@ -6,11 +6,12 @@ import Register from '../pages/Register';
 import ForgotPassword from '../pages/ForgotPassword';
 import Dashboard from '../pages/Dashboard';
 import BasicLayout from '../components/BasicLayout';
-import MusicList from '../pages/Music';
-import SingerList from '../pages/Singer';
-import AlbumList from '../pages/Album';
-import CategoryList from '../pages/Category';
-import TagList from '../pages/Tag';
+import ProductList from '../pages/Product';
+import SupplierList from '../pages/Supplier';
+import CustomerList from '../pages/Customer';
+import PurchaseList from '../pages/Purchase';
+import SalesList from '../pages/Sales';
+import InventoryList from '../pages/Inventory';
 import SysLogList from '../pages/SysLog';
 import UserList from '../pages/User';
 import { Result, Button } from 'antd';
@@ -59,35 +60,17 @@ const AppRouter: React.FC = () => {
             
             <Route path="/dashboard" element={<Dashboard />} />
             
-            <Route path="/musics" element={
-              <PrivateRoute roles={['super_admin', 'admin', 'user', 'auditor']}>
-                <MusicList />
-              </PrivateRoute>
-            } />
+            <Route path="/products" element={<ProductList />} />
             
-            <Route path="/singers" element={
-              <PrivateRoute roles={['super_admin', 'admin']}>
-                <SingerList />
-              </PrivateRoute>
-            } />
+            <Route path="/suppliers" element={<SupplierList />} />
             
-            <Route path="/albums" element={
-               <PrivateRoute roles={['super_admin', 'admin']}>
-                 <AlbumList />
-               </PrivateRoute>
-            } />
+            <Route path="/customers" element={<CustomerList />} />
             
-            <Route path="/categories" element={
-                <PrivateRoute roles={['super_admin', 'admin']}>
-                  <CategoryList />
-                </PrivateRoute>
-            } />
+            <Route path="/purchases" element={<PurchaseList />} />
             
-            <Route path="/tags" element={
-                <PrivateRoute roles={['super_admin', 'admin']}>
-                  <TagList />
-                </PrivateRoute>
-            } />
+            <Route path="/sales" element={<SalesList />} />
+            
+            <Route path="/inventory" element={<InventoryList />} />
             
             <Route path="/sys_logs" element={
                 <PrivateRoute roles={['super_admin', 'admin']}>

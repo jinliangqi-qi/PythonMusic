@@ -5,18 +5,17 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   DashboardOutlined,
-  SoundOutlined,
-  TeamOutlined,
-  FolderOutlined,
-  TagsOutlined,
-  AuditOutlined,
+  PackageOutlined,
+  ShoppingCartOutlined,
+  UsersOutlined,
+  ShoppingOutlined,
+  StockOutlined,
   BugOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
 import { getUserInfo } from '../api/auth';
-import ResponsiveContainer from './ResponsiveContainer'; // 引入我们之前封装的容器
-import MusicPlayer from './MusicPlayer';
+import ResponsiveContainer from './ResponsiveContainer';
 
 const { Header, Sider, Content } = Layout;
 
@@ -76,7 +75,36 @@ const BasicLayout: React.FC = () => {
       key: '/dashboard',
       icon: <DashboardOutlined />,
       label: '仪表盘',
-      // roles: ['super_admin', 'admin', 'user', 'auditor'] // 仪表盘应该所有人可见
+    },
+    {
+      key: '/products',
+      icon: <PackageOutlined />,
+      label: '产品管理',
+    },
+    {
+      key: '/suppliers',
+      icon: <ShoppingCartOutlined />,
+      label: '供应商管理',
+    },
+    {
+      key: '/customers',
+      icon: <UsersOutlined />,
+      label: '客户管理',
+    },
+    {
+      key: '/purchases',
+      icon: <ShoppingCartOutlined />,
+      label: '采购管理',
+    },
+    {
+      key: '/sales',
+      icon: <ShoppingOutlined />,
+      label: '销售管理',
+    },
+    {
+      key: '/inventory',
+      icon: <StockOutlined />,
+      label: '库存管理',
     },
     {
       key: '/users',
@@ -85,46 +113,10 @@ const BasicLayout: React.FC = () => {
       roles: ['super_admin', 'admin']
     },
     {
-      key: '/musics',
-      icon: <SoundOutlined />,
-      label: '音乐管理',
-      roles: ['super_admin', 'admin', 'user', 'auditor']
-    },
-    {
-      key: '/singers',
-      icon: <TeamOutlined />,
-      label: '歌手管理',
-      roles: ['super_admin', 'admin']
-    },
-    {
-      key: '/albums',
-      icon: <FolderOutlined />,
-      label: '专辑管理',
-      roles: ['super_admin', 'admin']
-    },
-    {
-      key: '/categories',
-      icon: <FolderOutlined />,
-      label: '分类管理',
-      roles: ['super_admin', 'admin']
-    },
-    {
-      key: '/tags',
-      icon: <TagsOutlined />,
-      label: '标签管理',
-      roles: ['super_admin', 'admin']
-    },
-    {
       key: '/sys_logs',
       icon: <BugOutlined />,
       label: '日志管理',
       roles: ['super_admin', 'admin']
-    },
-    {
-      key: '/audit',
-      icon: <AuditOutlined />,
-      label: '审核管理',
-      roles: ['super_admin', 'auditor']
     },
   ];
 
@@ -178,7 +170,7 @@ const BasicLayout: React.FC = () => {
           background: 'transparent',
           borderBottom: '1px solid rgba(255,255,255,0.3)'
         }}>
-          {collapsed ? 'M' : 'Music Admin'}
+          {collapsed ? 'I' : '进销存管理'}
         </div>
         <Menu
           theme="light"
@@ -251,9 +243,6 @@ const BasicLayout: React.FC = () => {
              <Outlet />
           </ResponsiveContainer>
         </Content>
-        {/* 全局播放器 */}
-        <div style={{ height: 80 }}></div> {/* 占位符，防止内容被遮挡 */}
-        <MusicPlayer />
       </Layout>
     </Layout>
   );

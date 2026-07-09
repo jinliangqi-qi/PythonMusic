@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, InputNumber, Select, Tag, Space, message, DatePicker, Drawer, Descriptions, Row, Col, Statistic, Divider, Popconfirm } from 'antd';
-import { PlusOutlined, CheckOutlined, PackageOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, CloseOutlined, DollarOutlined } from '@ant-design/icons';
+import { PlusOutlined, CheckOutlined, InboxOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, CloseOutlined, DollarOutlined } from '@ant-design/icons';
 import { getPurchases, getPurchase, createPurchase, updatePurchase, approvePurchase, receivePurchase, cancelPurchase, payPurchase, deletePurchase } from '../../api/purchase';
 import { getSuppliers, getAllSuppliers } from '../../api/supplier';
 import { getProducts, getAllProducts } from '../../api/product';
@@ -266,7 +266,7 @@ const PurchaseList: React.FC = () => {
             <Button type="link" size="small" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>审核</Button>
           )}
           {record.status === 'approved' && (
-            <Button type="link" size="small" icon={<PackageOutlined />} onClick={() => handleReceive(record.id)}>入库</Button>
+            <Button type="link" size="small" icon={<InboxOutlined />} onClick={() => handleReceive(record.id)}>入库</Button>
           )}
           {record.status !== 'cancelled' && record.status !== 'completed' && (
             <Button type="link" size="small" icon={<DollarOutlined />} onClick={() => handlePay(record)}>付款</Button>
@@ -443,7 +443,7 @@ const PurchaseList: React.FC = () => {
               待付款: <strong style={{ color: '#f5222d' }}>¥{(currentOrder.total_amount - (currentOrder.paid_amount || 0)).toLocaleString()}</strong>
             </p>
 
-            <Divider orientation="left">商品明细</Divider>
+            <Divider titlePlacement="start">商品明细</Divider>
             <Table
               dataSource={currentOrder.items || []}
               rowKey="id"
@@ -461,7 +461,7 @@ const PurchaseList: React.FC = () => {
 
             {currentOrder.remark && (
               <>
-                <Divider orientation="left">备注</Divider>
+                <Divider titlePlacement="start">备注</Divider>
                 <p style={{ color: '#666' }}>{currentOrder.remark}</p>
               </>
             )}
@@ -472,7 +472,7 @@ const PurchaseList: React.FC = () => {
                 <Button type="primary" icon={<CheckOutlined />} onClick={() => { handleApprove(currentOrder.id); setDetailVisible(false); }}>审核通过</Button>
               )}
               {currentOrder.status === 'approved' && (
-                <Button type="primary" icon={<PackageOutlined />} onClick={() => { handleReceive(currentOrder.id); setDetailVisible(false); }}>确认入库</Button>
+                <Button type="primary" icon={<InboxOutlined />} onClick={() => { handleReceive(currentOrder.id); setDetailVisible(false); }}>确认入库</Button>
               )}
               {currentOrder.status !== 'cancelled' && currentOrder.status !== 'completed' && (
                 <Button icon={<DollarOutlined />} onClick={() => handlePay(currentOrder)}>付款</Button>

@@ -5,9 +5,9 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   DashboardOutlined,
-  PackageOutlined,
+  InboxOutlined,
   ShoppingCartOutlined,
-  UsersOutlined,
+  TeamOutlined,
   ShoppingOutlined,
   StockOutlined,
   BugOutlined,
@@ -80,7 +80,7 @@ const BasicLayout: React.FC = () => {
     },
     {
       key: '/products',
-      icon: <PackageOutlined />,
+      icon: <InboxOutlined />,
       label: '产品管理',
     },
     {
@@ -90,7 +90,7 @@ const BasicLayout: React.FC = () => {
     },
     {
       key: '/customers',
-      icon: <UsersOutlined />,
+      icon: <TeamOutlined />,
       label: '客户管理',
     },
     {

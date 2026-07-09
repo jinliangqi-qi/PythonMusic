@@ -454,7 +454,7 @@ const SalesList: React.FC = () => {
               待收款: <strong style={{ color: '#f5222d' }}>¥{(currentOrder.total_amount - (currentOrder.paid_amount || 0)).toLocaleString()}</strong>
             </p>
 
-            <Divider orientation="left">商品明细</Divider>
+            <Divider titlePlacement="start">商品明细</Divider>
             <Table
               dataSource={currentOrder.items || []}
               rowKey="id"
@@ -472,7 +472,7 @@ const SalesList: React.FC = () => {
 
             {currentOrder.remark && (
               <>
-                <Divider orientation="left">备注</Divider>
+                <Divider titlePlacement="start">备注</Divider>
                 <p style={{ color: '#666' }}>{currentOrder.remark}</p>
               </>
             )}

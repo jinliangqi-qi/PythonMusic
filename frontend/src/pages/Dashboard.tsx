@@ -3,10 +3,10 @@ import { Card, Row, Col, Statistic, Table, Tag, Space } from 'antd';
 import { 
   ShoppingCartOutlined, 
   DollarOutlined, 
-  PackageOutlined, 
-  UsersOutlined,
+  InboxOutlined, 
+  UserOutlined,
   AlertOutlined,
-  TrendingUpOutlined,
+  RiseOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined
 } from '@ant-design/icons';
@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
   const loadLowStockProducts = async () => {
     try {
       const data = await getLowStockProducts();
-      setLowStockProducts(data || []);
+      setLowStockProducts((data as any) || []);
     } catch (error) {
       console.error('Failed to load low stock products:', error);
     }
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
             <Statistic
               title="产品总数"
               value={stats.product_count || 0}
-              prefix={<PackageOutlined />}
+              prefix={<InboxOutlined />}
               valueStyle={{ color: '#0071e3' }}
             />
           </Card>
@@ -108,7 +108,7 @@ const Dashboard: React.FC = () => {
             <Statistic
               title="客户数量"
               value={stats.customer_count || 0}
-              prefix={<UsersOutlined />}
+              prefix={<UserOutlined />}
               valueStyle={{ color: '#5856d6' }}
             />
           </Card>
@@ -118,7 +118,7 @@ const Dashboard: React.FC = () => {
             <Statistic
               title="总库存"
               value={stats.total_stock || 0}
-              prefix={<PackageOutlined />}
+              prefix={<InboxOutlined />}
               valueStyle={{ color: '#ff9500' }}
             />
           </Card>
@@ -133,7 +133,7 @@ const Dashboard: React.FC = () => {
               value={stats.purchase_total || 0}
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#ff3b30' }}
-              formatter={(value: number) => `¥${value.toLocaleString()}`}
+              formatter={(value) => `¥${Number(value).toLocaleString()}`}
             />
           </Card>
         </Col>
@@ -144,7 +144,7 @@ const Dashboard: React.FC = () => {
               value={stats.sales_total || 0}
               prefix={<DollarOutlined />}
               valueStyle={{ color: '#34c759' }}
-              formatter={(value: number) => `¥${value.toLocaleString()}`}
+              formatter={(value) => `¥${Number(value).toLocaleString()}`}
             />
           </Card>
         </Col>
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
           />
         ) : (
           <div style={{ textAlign: 'center', padding: 40, color: '#86868b' }}>
-            <PackageOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+            <InboxOutlined style={{ fontSize: 48, marginBottom: 16 }} />
             <p>暂无低库存产品</p>
           </div>
         )}

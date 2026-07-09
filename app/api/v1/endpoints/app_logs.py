@@ -3,7 +3,9 @@ from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
+from app.api import deps
 from app.crud.crud_app_log import crud_app_log
+from app.models.user import User
 from app.schemas.app_log import AppLogCreate, AppLogBatchCreate, AppLogInfo
 from app.schemas.response import page_success, PageResponse, success, ResponseBase
 from app.db.session import get_db
@@ -18,6 +20,9 @@ def get_client_info(request: Request) -> tuple:
     return client_ip, user_agent
 
 
+# 注意：静态路由必须放在动态路由（/{log_id}）之前
+
+# 上报日志接口（公开，无需认证）
 @router.post("/", response_model=ResponseBase[AppLogInfo])
 async def create_log(
     request: Request,
@@ -57,6 +62,7 @@ async def create_logs_batch(
     })
 
 
+# 需要管理员权限的接口
 @router.get("/", response_model=PageResponse[AppLogInfo])
 async def read_logs(
     db: AsyncSession = Depends(get_db),
@@ -68,6 +74,7 @@ async def read_logs(
     environment: Optional[str] = Query(None, description="环境筛选"),
     keyword: Optional[str] = Query(None, description="关键词搜索"),
     days: Optional[int] = Query(7, description="查询最近N天的日志"),
+    current_user: User = Depends(deps.get_current_active_admin),
 ) -> Any:
     """查询日志列表（需要管理员权限）"""
     skip = (page - 1) * size
@@ -99,22 +106,40 @@ async def read_logs(
     return page_success(logs, total, page, size)
 
 
+# 静态路由放在 {log_id} 之前
 @router.get("/stats", response_model=ResponseBase[dict])
 async def get_log_stats(
     db: AsyncSession = Depends(get_db),
     hours: int = Query(24, ge=1, le=168, description="统计最近N小时"),
+    current_user: User = Depends(deps.get_current_active_admin),
 ) -> Any:
     """获取日志统计（需要管理员权限）"""
     stats = await crud_app_log.get_stats(db, hours=hours)
     return success(data=stats)
 
 
+@router.delete("/cleanup", response_model=ResponseBase[dict])
+async def cleanup_old_logs(
+    db: AsyncSession = Depends(get_db),
+    days: int = Query(30, ge=1, description="删除N天前的日志"),
+    current_user: User = Depends(deps.get_current_active_admin),
+) -> Any:
+    """清理旧日志（需要管理员权限）"""
+    count = await crud_app_log.remove_old_logs(db, days=days)
+    return success(data={
+        "deleted_count": count,
+        "message": f"已删除 {count} 条 {days} 天前的日志"
+    })
+
+
+# 动态路由放在最后
 @router.get("/{log_id}", response_model=ResponseBase[AppLogInfo])
 async def read_log(
     log_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_admin),
 ) -> Any:
-    """获取日志详情"""
+    """获取日志详情（需要管理员权限）"""
     log = await crud_app_log.get(db, id=log_id)
     if not log:
         raise HTTPException(status_code=404, detail="Log not found")
@@ -125,23 +150,11 @@ async def read_log(
 async def delete_log(
     log_id: int,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_active_admin),
 ) -> Any:
-    """删除日志"""
+    """删除日志（需要管理员权限）"""
     log = await crud_app_log.get(db, id=log_id)
     if not log:
         raise HTTPException(status_code=404, detail="Log not found")
     log = await crud_app_log.remove(db, id=log_id)
     return success(data=log)
-
-
-@router.delete("/cleanup", response_model=ResponseBase[dict])
-async def cleanup_old_logs(
-    db: AsyncSession = Depends(get_db),
-    days: int = Query(30, ge=1, description="删除N天前的日志"),
-) -> Any:
-    """清理旧日志"""
-    count = await crud_app_log.remove_old_logs(db, days=days)
-    return success(data={
-        "deleted_count": count,
-        "message": f"已删除 {count} 条 {days} 天前的日志"
-    })

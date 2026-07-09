@@ -5,5 +5,5 @@ export const getSysLogs = (params: any) => {
 };
 
 export const deleteSysLog = (id: number) => {
-  return request.delete(`/sys_logs/${id}`);
+  return request.delete(`/sys_logs/${id}/`);
 };

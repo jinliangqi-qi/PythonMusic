@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
+from app.api import deps
 from app.db.session import get_db
 from app.models.product import Product
 from app.models.supplier import Supplier
@@ -10,12 +11,16 @@ from app.models.customer import Customer
 from app.models.purchase import PurchaseOrder
 from app.models.sales import SalesOrder
 from app.models.inventory import Inventory
+from app.models.user import User
 from app.schemas.response import success
 
 router = APIRouter()
 
 @router.get("/")
-async def get_dashboard_stats(db: AsyncSession = Depends(get_db)) -> Any:
+async def get_dashboard_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
     product_count = await db.execute(select(func.count(Product.id)))
     supplier_count = await db.execute(select(func.count(Supplier.id)))
     customer_count = await db.execute(select(func.count(Customer.id)))

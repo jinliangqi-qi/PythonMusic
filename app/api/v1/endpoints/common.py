@@ -47,7 +47,7 @@ async def upload_files(
                     raise HTTPException(status_code=400, detail=f"Unsupported file mime type: {mime}")
 
         if file_type == "image" and ext not in settings.ALLOWED_IMAGE_EXTENSIONS:
-            pass
+            raise HTTPException(status_code=400, detail=f"Unsupported image extension: {ext}")
 
         unique_filename = f"{uuid.uuid4().hex}.{ext}"
         save_dir = os.path.join(settings.UPLOAD_DIR, file_type)

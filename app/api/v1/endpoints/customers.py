@@ -11,6 +11,8 @@ from app.db.session import get_db
 
 router = APIRouter()
 
+# 注意：静态路由必须放在动态路由（/{customer_id}）之前
+
 @router.get("/", response_model=PageResponse[CustomerInfo])
 async def read_customers(
     db: AsyncSession = Depends(get_db),
@@ -28,6 +30,18 @@ async def read_customers(
     )
     return page_success(customers, total, page, size)
 
+# 静态路由放在 {customer_id} 之前
+@router.get("/all", response_model=ResponseBase[List[CustomerInfo]])
+async def read_all_customers(
+    db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query("active", description="状态筛选"),
+) -> Any:
+    customers = await crud_customer.get_multi(
+        db, skip=0, limit=1000, status=status
+    )
+    return success(data=customers)
+
+# 动态路由放在最后
 @router.get("/{customer_id}", response_model=ResponseBase[CustomerInfo])
 async def read_customer(
     customer_id: int,
@@ -75,13 +89,3 @@ async def delete_customer(
         raise HTTPException(status_code=404, detail="Customer not found")
     customer = await crud_customer.remove(db, id=customer_id)
     return success(data=customer)
-
-@router.get("/all", response_model=ResponseBase[List[CustomerInfo]])
-async def read_all_customers(
-    db: AsyncSession = Depends(get_db),
-    status: Optional[str] = Query("active", description="状态筛选"),
-) -> Any:
-    customers = await crud_customer.get_multi(
-        db, skip=0, limit=1000, status=status
-    )
-    return success(data=customers)

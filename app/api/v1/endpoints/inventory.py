@@ -22,6 +22,8 @@ def format_inventory(record):
         data["product_sku"] = ""
     return data
 
+# 注意：静态路由必须放在动态路由（/{inventory_id}）之前
+
 @router.get("/", response_model=PageResponse[InventoryInfo])
 async def read_inventory(
     db: AsyncSession = Depends(get_db),
@@ -40,16 +42,7 @@ async def read_inventory(
     formatted_records = [format_inventory(r) for r in records]
     return page_success(formatted_records, total, page, size)
 
-@router.get("/{inventory_id}", response_model=ResponseBase[InventoryInfo])
-async def read_inventory_record(
-    inventory_id: int,
-    db: AsyncSession = Depends(get_db),
-) -> Any:
-    record = await crud_inventory.get(db, id=inventory_id)
-    if not record:
-        raise HTTPException(status_code=404, detail="Inventory record not found")
-    return success(data=format_inventory(record))
-
+# 静态路由放在 {inventory_id} 之前
 @router.post("/adjust", response_model=ResponseBase[InventoryInfo])
 async def adjust_inventory(
     *,
@@ -80,3 +73,14 @@ async def inventory_check(
         return success(data=format_inventory(record))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# 动态路由放在最后
+@router.get("/{inventory_id}", response_model=ResponseBase[InventoryInfo])
+async def read_inventory_record(
+    inventory_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    record = await crud_inventory.get(db, id=inventory_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Inventory record not found")
+    return success(data=format_inventory(record))

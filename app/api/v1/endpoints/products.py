@@ -11,6 +11,8 @@ from app.db.session import get_db
 
 router = APIRouter()
 
+# 注意：静态路由必须放在动态路由（/{product_id}）之前，否则会被当作 product_id 解析
+
 @router.get("/", response_model=PageResponse[ProductInfo])
 async def read_products(
     db: AsyncSession = Depends(get_db),
@@ -30,6 +32,25 @@ async def read_products(
     )
     return page_success(products, total, page, size)
 
+# 静态路由放在 {product_id} 之前
+@router.get("/low-stock/", response_model=ResponseBase[List[ProductInfo]])
+async def get_low_stock_products(
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    products = await crud_product.get_low_stock_products(db)
+    return success(data=products)
+
+@router.get("/all", response_model=ResponseBase[List[ProductInfo]])
+async def get_all_products(
+    db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query("active", description="状态筛选"),
+) -> Any:
+    products = await crud_product.get_multi(
+        db, skip=0, limit=1000, status=status
+    )
+    return success(data=products)
+
+# 动态路由放在最后
 @router.get("/{product_id}", response_model=ResponseBase[ProductInfo])
 async def read_product(
     product_id: int,
@@ -86,20 +107,3 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="Product not found")
     product = await crud_product.remove(db, id=product_id)
     return success(data=product)
-
-@router.get("/low-stock/", response_model=ResponseBase[List[ProductInfo]])
-async def get_low_stock_products(
-    db: AsyncSession = Depends(get_db),
-) -> Any:
-    products = await crud_product.get_low_stock_products(db)
-    return success(data=products)
-
-@router.get("/all", response_model=ResponseBase[List[ProductInfo]])
-async def get_all_products(
-    db: AsyncSession = Depends(get_db),
-    status: Optional[str] = Query("active", description="状态筛选"),
-) -> Any:
-    products = await crud_product.get_multi(
-        db, skip=0, limit=1000, status=status
-    )
-    return success(data=products)

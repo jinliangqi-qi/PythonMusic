@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { logCollector } from '../utils/logCollector';
 
 interface UserInfo {
   id: number;
@@ -39,10 +40,16 @@ export const useUserStore = create<UserState>()(
         } else {
             perms.push(userInfo.role);
         }
+        // 设置用户ID到日志采集器
+        logCollector.setUserId(userInfo.id);
         set({ userInfo, permissions: perms });
       },
 
-      clearUser: () => set({ token: null, userInfo: null, permissions: [] }),
+      clearUser: () => {
+        // 清除日志采集器的用户ID
+        logCollector.setUserId(undefined);
+        set({ token: null, userInfo: null, permissions: [] });
+      },
 
       hasRole: (allowedRoles) => {
         const { userInfo } = get();

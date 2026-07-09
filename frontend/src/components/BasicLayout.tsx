@@ -12,7 +12,8 @@ import {
   StockOutlined,
   BugOutlined,
   UnorderedListOutlined,
-  ShopOutlined
+  ShopOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
@@ -128,6 +129,12 @@ const BasicLayout: React.FC = () => {
       key: '/sys_logs',
       icon: <BugOutlined />,
       label: '日志管理',
+      roles: ['super_admin', 'admin']
+    },
+    {
+      key: '/app_logs',
+      icon: <FileTextOutlined />,
+      label: '应用日志',
       roles: ['super_admin', 'admin']
     },
   ];

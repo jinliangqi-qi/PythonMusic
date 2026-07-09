@@ -16,6 +16,7 @@ import SysLogList from '../pages/SysLog';
 import UserList from '../pages/User';
 import CategoryList from '../pages/Category';
 import WarehouseList from '../pages/Warehouse';
+import AppLogList from '../pages/AppLog';
 import { Result, Button } from 'antd';
 
 // 403 页面
@@ -81,6 +82,12 @@ const AppRouter: React.FC = () => {
             <Route path="/sys_logs" element={
                 <PrivateRoute roles={['super_admin', 'admin']}>
                   <SysLogList />
+                </PrivateRoute>
+            } />
+            
+            <Route path="/app_logs" element={
+                <PrivateRoute roles={['super_admin', 'admin']}>
+                  <AppLogList />
                 </PrivateRoute>
             } />
             

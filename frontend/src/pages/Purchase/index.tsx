@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Select, Tag, Space, message, DatePicker, Drawer, Descriptions, Row, Col, Statistic, Divider, Popconfirm } from 'antd';
-import { PlusOutlined, CheckOutlined, InboxOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, CloseOutlined, DollarOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, InputNumber, Select, Tag, Space, message, DatePicker, Drawer, Descriptions, Row, Col, Statistic, Divider, Popconfirm, Card, Typography } from 'antd';
+import { PlusOutlined, CheckOutlined, InboxOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, CloseOutlined, DollarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { getPurchases, getPurchase, createPurchase, updatePurchase, approvePurchase, receivePurchase, cancelPurchase, payPurchase, deletePurchase } from '../../api/purchase';
 import { getSuppliers, getAllSuppliers } from '../../api/supplier';
 import { getProducts, getAllProducts } from '../../api/product';
 import dayjs from 'dayjs';
+
+const { Title, Text } = Typography;
 
 const PurchaseList: React.FC = () => {
   const [purchases, setPurchases] = useState<any[]>([]);
@@ -205,12 +207,12 @@ const PurchaseList: React.FC = () => {
 
   const getStatusTag = (status: string) => {
     const colors: Record<string, string> = {
-      'pending': 'orange',
-      'approved': 'blue',
-      'delivered': 'cyan',
+      'pending': 'warning',
+      'approved': 'processing',
+      'delivered': 'info',
       'paid': 'purple',
-      'completed': 'green',
-      'cancelled': 'red',
+      'completed': 'success',
+      'cancelled': 'error',
     };
     const labels: Record<string, string> = {
       'pending': '待审核',
@@ -220,7 +222,7 @@ const PurchaseList: React.FC = () => {
       'completed': '已完成',
       'cancelled': '已取消',
     };
-    return <Tag color={colors[status]}>{labels[status] || status}</Tag>;
+    return <Tag color={colors[status]} style={{ padding: '4px 12px', fontSize: 13 }}>{labels[status] || status}</Tag>;
   };
 
   const getTotalAmount = () => {
@@ -236,52 +238,64 @@ const PurchaseList: React.FC = () => {
   };
 
   const columns = [
-    { title: '采购单号', dataIndex: 'order_no', key: 'order_no', width: 160 },
+    { 
+      title: '采购单号', 
+      dataIndex: 'order_no', 
+      key: 'order_no', 
+      width: 170,
+      render: (text: string) => <Text code style={{ fontSize: 13, color: '#6366f1' }}>{text}</Text>
+    },
     { title: '供应商', dataIndex: 'supplier', key: 'supplier', width: 150, render: (val: any) => val?.name },
     { 
       title: '总金额', 
       dataIndex: 'total_amount', 
       key: 'total_amount', 
-      width: 120,
-      render: (val: number) => `¥${val?.toLocaleString() || 0}` 
+      width: 130,
+      render: (val: number) => <Text strong style={{ color: '#ef4444', fontSize: 15, fontWeight: 600 }}>¥{val?.toLocaleString() || 0}</Text>
     },
     { 
       title: '已付款', 
       dataIndex: 'paid_amount', 
       key: 'paid_amount', 
       width: 120,
-      render: (val: number) => `¥${val?.toLocaleString() || 0}` 
+      render: (val: number) => <Text style={{ fontSize: 14 }}>¥{val?.toLocaleString() || 0}</Text>
     },
-    { title: '状态', dataIndex: 'status', key: 'status', width: 100, render: (val: string) => getStatusTag(val) },
+    { 
+      title: '待付款', 
+      key: 'unpaid', 
+      width: 120,
+      render: (_: any, record: any) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>¥{((record.total_amount || 0) - (record.paid_amount || 0)).toLocaleString()}</Text>
+    },
+    { title: '状态', dataIndex: 'status', key: 'status', width: 110, render: (val: string) => getStatusTag(val) },
     { title: '创建时间', dataIndex: 'created_at', key: 'created_at', width: 180, render: (val: string) => dayjs(val).format('YYYY-MM-DD HH:mm') },
     {
       title: '操作',
       key: 'action',
-      width: 320,
+      width: 300,
       fixed: 'right' as const,
       render: (_: any, record: any) => (
         <Space size="small">
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record.id)}>详情</Button>
+          <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record.id)}>详情</Button>
           {record.status === 'pending' && (
-            <Button type="link" size="small" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>审核</Button>
+            <Button type="primary" size="small" icon={<CheckOutlined />} onClick={() => handleApprove(record.id)}>审核</Button>
           )}
           {record.status === 'approved' && (
-            <Button type="link" size="small" icon={<InboxOutlined />} onClick={() => handleReceive(record.id)}>入库</Button>
+            <Button type="primary" size="small" icon={<InboxOutlined />} onClick={() => handleReceive(record.id)}>入库</Button>
           )}
           {record.status !== 'cancelled' && record.status !== 'completed' && (
-            <Button type="link" size="small" icon={<DollarOutlined />} onClick={() => handlePay(record)}>付款</Button>
+            <Button size="small" icon={<DollarOutlined />} onClick={() => handlePay(record)}>付款</Button>
           )}
           {record.status === 'pending' && (
-            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
+            <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           )}
           {record.status !== 'cancelled' && record.status !== 'completed' && (
             <Popconfirm title="确定取消该订单？" onConfirm={() => handleCancel(record.id)}>
-              <Button type="link" size="small" danger icon={<CloseOutlined />}>取消</Button>
+              <Button type="text" size="small" danger icon={<CloseOutlined />}>取消</Button>
             </Popconfirm>
           )}
           {record.status === 'pending' && (
             <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-              <Button type="link" size="small" danger icon={<DeleteOutlined />}>删除</Button>
+              <Button type="text" size="small" danger icon={<DeleteOutlined />}>删除</Button>
             </Popconfirm>
           )}
         </Space>
@@ -291,100 +305,146 @@ const PurchaseList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>采购管理</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>新增采购单</Button>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>采购订单</Title>
+          <Text type="secondary" style={{ fontSize: 14, marginTop: 6, display: 'block' }}>管理采购订单、审核和入库</Text>
+        </div>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={handleCreate}
+          size="large"
+          style={{ borderRadius: 10, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}
+        >
+          新增采购单
+        </Button>
       </div>
       
-      <div style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <Input.Search
-          placeholder="搜索采购单号"
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onSearch={() => setPage(1)}
-          style={{ width: 250 }}
-          allowClear
+      <Card style={{ marginBottom: 24, border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 280 }}>
+            <Input.Search
+              placeholder="搜索采购单号"
+              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onSearch={() => setPage(1)}
+              allowClear
+              style={{ width: '100%', maxWidth: 320 }}
+            />
+          </div>
+          <Select
+            placeholder="状态"
+            value={statusFilter}
+            onChange={(v) => { setStatusFilter(v); setPage(1); }}
+            style={{ width: 160 }}
+            allowClear
+            bordered={false}
+            size="large"
+          >
+            <Select.Option value="pending">待审核</Select.Option>
+            <Select.Option value="approved">已审核</Select.Option>
+            <Select.Option value="delivered">已到货</Select.Option>
+            <Select.Option value="paid">已付款</Select.Option>
+            <Select.Option value="completed">已完成</Select.Option>
+            <Select.Option value="cancelled">已取消</Select.Option>
+          </Select>
+          <Select
+            placeholder="供应商"
+            value={supplierFilter}
+            onChange={(v) => { setSupplierFilter(v); setPage(1); }}
+            style={{ width: 200 }}
+            allowClear
+            showSearch
+            optionFilterProp="children"
+            bordered={false}
+            size="large"
+          >
+            {suppliers.map(s => <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>)}
+          </Select>
+          <Button 
+            onClick={handleReset}
+            bordered={false}
+            style={{ color: '#64748b' }}
+          >
+            重置筛选
+          </Button>
+        </div>
+      </Card>
+      
+      <Card style={{ border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
+        <Table
+          dataSource={purchases}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1300 }}
+          pagination={{ 
+            current: page, 
+            pageSize: size, 
+            total, 
+            onChange: (p, s) => { setPage(p); setSize(s); },
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (t) => `共 ${t} 条`,
+          }}
+          size="middle"
         />
-        <Select
-          placeholder="状态筛选"
-          value={statusFilter}
-          onChange={(v) => { setStatusFilter(v); setPage(1); }}
-          style={{ width: 150 }}
-          allowClear
-        >
-          <Select.Option value="pending">待审核</Select.Option>
-          <Select.Option value="approved">已审核</Select.Option>
-          <Select.Option value="delivered">已到货</Select.Option>
-          <Select.Option value="paid">已付款</Select.Option>
-          <Select.Option value="completed">已完成</Select.Option>
-          <Select.Option value="cancelled">已取消</Select.Option>
-        </Select>
-        <Select
-          placeholder="供应商筛选"
-          value={supplierFilter}
-          onChange={(v) => { setSupplierFilter(v); setPage(1); }}
-          style={{ width: 200 }}
-          allowClear
-          showSearch
-          optionFilterProp="children"
-        >
-          {suppliers.map(s => <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>)}
-        </Select>
-        <Button onClick={handleReset}>重置</Button>
-      </div>
-      
-      <Table
-        dataSource={purchases}
-        columns={columns}
-        rowKey="id"
-        loading={loading}
-        scroll={{ x: 1200 }}
-        pagination={{ current: page, pageSize: size, total, onChange: (p, s) => { setPage(p); setSize(s); } }}
-      />
+      </Card>
 
       <Modal
         title={editingOrder ? '编辑采购单' : '新增采购单'}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmit}
-        width={700}
+        width={750}
         destroyOnClose
+        okText="保存"
+        cancelText="取消"
       >
         <Form form={form} layout="vertical">
-          <Row gutter={16}>
+          <Row gutter={[16, 16]}>
             <Col span={12}>
               <Form.Item name="supplier_id" label="供应商" rules={[{ required: true, message: '请选择供应商' }]}>
-                <Select placeholder="选择供应商" showSearch optionFilterProp="children">
+                <Select placeholder="选择供应商" showSearch optionFilterProp="children" size="large">
                   {suppliers.map(s => <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>)}
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="delivery_date" label="预计交货日期">
-                <DatePicker style={{ width: '100%' }} />
+                <DatePicker style={{ width: '100%' }} size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="remark" label="备注">
+                <Input.TextArea rows={2} placeholder="备注信息" />
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item name="remark" label="备注">
-            <Input.TextArea rows={2} />
-          </Form.Item>
         </Form>
         
-        <div style={{ marginTop: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h4 style={{ margin: 0 }}>采购明细</h4>
-            <span style={{ color: '#666' }}>合计: <strong style={{ color: '#f5222d' }}>¥{getTotalAmount().toLocaleString()}</strong></span>
+        <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <ShoppingCartOutlined style={{ fontSize: 18, color: '#6366f1' }} />
+              <span style={{ fontWeight: 600, fontSize: 15 }}>采购明细</span>
+            </div>
+            <span style={{ color: '#64748b', fontSize: 14 }}>
+              合计: <strong style={{ color: '#ef4444', fontSize: 18 }}>¥{getTotalAmount().toLocaleString()}</strong>
+            </span>
           </div>
           {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+            <div key={index} style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'center' }}>
               <Select
                 placeholder="选择产品"
                 value={item.product_id}
                 onChange={(value) => updateItem(index, 'product_id', value)}
-                style={{ flex: 2, minWidth: 150 }}
+                style={{ flex: 2, minWidth: 200 }}
                 showSearch
                 optionFilterProp="children"
+                size="large"
               >
                 {products.map(p => <Select.Option key={p.id} value={p.id}>{p.name}</Select.Option>)}
               </Select>
@@ -393,7 +453,8 @@ const PurchaseList: React.FC = () => {
                 value={item.quantity}
                 onChange={(value) => updateItem(index, 'quantity', value)}
                 min={1}
-                style={{ flex: 1, minWidth: 80 }}
+                style={{ flex: 1, minWidth: 120 }}
+                size="large"
               />
               <InputNumber
                 placeholder="单价"
@@ -401,47 +462,76 @@ const PurchaseList: React.FC = () => {
                 onChange={(value) => updateItem(index, 'unit_price', value)}
                 min={0}
                 step={0.01}
-                style={{ flex: 1, minWidth: 80 }}
+                style={{ flex: 1, minWidth: 120 }}
+                prefix="¥"
+                size="large"
               />
-              <span style={{ width: 80, textAlign: 'right' }}>¥{((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}</span>
+              <span style={{ width: 110, textAlign: 'right', fontSize: 14, fontWeight: 600, color: '#1e293b' }}>
+                ¥{((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}
+              </span>
               {items.length > 1 && (
-                <Button type="text" danger onClick={() => removeItem(index)}>删除</Button>
+                <Button type="text" danger icon={<CloseOutlined />} onClick={() => removeItem(index)} />
               )}
             </div>
           ))}
-          <Button onClick={addItem} style={{ marginTop: 8 }}>添加商品</Button>
+          <Button onClick={addItem} style={{ marginTop: 8 }} icon={<PlusOutlined />}>添加商品</Button>
         </div>
       </Modal>
 
       <Drawer
         title="采购单详情"
         placement="right"
-        width={600}
+        width={700}
         open={detailVisible}
         onClose={() => setDetailVisible(false)}
       >
         {currentOrder && (
           <div>
-            <Descriptions title="基本信息" bordered column={2} size="small" style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="采购单号">{currentOrder.order_no}</Descriptions.Item>
-              <Descriptions.Item label="状态">{getStatusTag(currentOrder.status)}</Descriptions.Item>
-              <Descriptions.Item label="供应商">{currentOrder.supplier?.name}</Descriptions.Item>
-              <Descriptions.Item label="创建时间">{dayjs(currentOrder.created_at).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
-              <Descriptions.Item label="预计交货">{currentOrder.delivery_date ? dayjs(currentOrder.delivery_date).format('YYYY-MM-DD') : '-'}</Descriptions.Item>
-              <Descriptions.Item label="更新时间">{dayjs(currentOrder.updated_at).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
-            </Descriptions>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div>
+                  <Text code style={{ fontSize: 16, color: '#6366f1', fontWeight: 600 }}>{currentOrder.order_no}</Text>
+                  <div style={{ marginTop: 4 }}>
+                    {getStatusTag(currentOrder.status)}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 12, color: '#94a3b8' }}>创建时间</div>
+                  <div style={{ fontSize: 14 }}>{dayjs(currentOrder.created_at).format('YYYY-MM-DD HH:mm')}</div>
+                </div>
+              </div>
+              
+              <Descriptions title="基本信息" bordered column={2} size="small" style={{ marginBottom: 20 }}>
+                <Descriptions.Item label="供应商">{currentOrder.supplier?.name}</Descriptions.Item>
+                <Descriptions.Item label="联系人">{currentOrder.supplier?.contact_person || '-'}</Descriptions.Item>
+                <Descriptions.Item label="联系电话">{currentOrder.supplier?.phone || '-'}</Descriptions.Item>
+                <Descriptions.Item label="预计交货">{currentOrder.delivery_date ? dayjs(currentOrder.delivery_date).format('YYYY-MM-DD') : '-'}</Descriptions.Item>
+                <Descriptions.Item label="更新时间">{dayjs(currentOrder.updated_at).format('YYYY-MM-DD HH:mm')}</Descriptions.Item>
+                <Descriptions.Item label="备注">{currentOrder.remark || '-'}</Descriptions.Item>
+              </Descriptions>
+            </div>
 
-            <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
               <Col span={12}>
-                <Statistic title="订单总金额" value={currentOrder.total_amount} prefix="¥" />
+                <Card size="small" style={{ border: 'none', background: '#fef3c7', borderRadius: 12 }}>
+                  <Statistic title="订单总金额" value={currentOrder.total_amount} prefix="¥" valueStyle={{ color: '#f59e0b', fontWeight: 700, fontSize: 24 }} />
+                </Card>
               </Col>
               <Col span={12}>
-                <Statistic title="已付款金额" value={currentOrder.paid_amount || 0} prefix="¥" />
+                <Card size="small" style={{ border: 'none', background: '#dbeafe', borderRadius: 12 }}>
+                  <Statistic title="已付款金额" value={currentOrder.paid_amount || 0} prefix="¥" valueStyle={{ color: '#3b82f6', fontWeight: 700, fontSize: 24 }} />
+                </Card>
               </Col>
             </Row>
-            <p style={{ color: '#666', marginBottom: 16 }}>
-              待付款: <strong style={{ color: '#f5222d' }}>¥{(currentOrder.total_amount - (currentOrder.paid_amount || 0)).toLocaleString()}</strong>
-            </p>
+            
+            <div style={{ background: '#fee2e2', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: '#991b1b' }}>待付款金额</Text>
+                <Text style={{ fontSize: 24, fontWeight: 700, color: '#ef4444' }}>
+                  ¥{(currentOrder.total_amount - (currentOrder.paid_amount || 0)).toLocaleString()}
+                </Text>
+              </div>
+            </div>
 
             <Divider titlePlacement="start">商品明细</Divider>
             <Table
@@ -451,20 +541,13 @@ const PurchaseList: React.FC = () => {
               pagination={false}
               columns={[
                 { title: '产品', dataIndex: 'product_name', key: 'product_name' },
-                { title: 'SKU', dataIndex: 'product_sku', key: 'product_sku', width: 100 },
+                { title: 'SKU', dataIndex: 'product_sku', key: 'product_sku', width: 120 },
                 { title: '数量', dataIndex: 'quantity', key: 'quantity', width: 80 },
                 { title: '单价', dataIndex: 'unit_price', key: 'unit_price', width: 100, render: (v: number) => `¥${v}` },
-                { title: '金额', dataIndex: 'amount', key: 'amount', width: 110, render: (v: number) => `¥${v?.toLocaleString() || 0}` },
+                { title: '金额', dataIndex: 'amount', key: 'amount', width: 120, render: (v: number) => <Text strong>¥{v?.toLocaleString() || 0}</Text> },
                 { title: '已收货', dataIndex: 'received_qty', key: 'received_qty', width: 80 },
               ]}
             />
-
-            {currentOrder.remark && (
-              <>
-                <Divider titlePlacement="start">备注</Divider>
-                <p style={{ color: '#666' }}>{currentOrder.remark}</p>
-              </>
-            )}
 
             <Divider />
             <Space>
@@ -492,25 +575,33 @@ const PurchaseList: React.FC = () => {
         open={payVisible}
         onOk={handlePaySubmit}
         onCancel={() => setPayVisible(false)}
-        width={400}
+        width={480}
+        okText="确认付款"
+        cancelText="取消"
       >
         <Form form={payForm} layout="vertical">
-          <Form.Item label="订单号">
-            <span>{currentOrder?.order_no}</span>
-          </Form.Item>
-          <Form.Item label="订单总额">
-            <span>¥{currentOrder?.total_amount?.toLocaleString() || 0}</span>
-          </Form.Item>
-          <Form.Item label="已付款">
-            <span>¥{currentOrder?.paid_amount?.toLocaleString() || 0}</span>
-          </Form.Item>
-          <Form.Item label="待付款">
-            <span style={{ color: '#f5222d', fontWeight: 'bold' }}>
-              ¥{((currentOrder?.total_amount || 0) - (currentOrder?.paid_amount || 0)).toLocaleString()}
-            </span>
-          </Form.Item>
+          <div style={{ marginBottom: 20, padding: 20, background: '#f8fafc', borderRadius: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <Text type="secondary">订单号</Text>
+              <Text strong code>{currentOrder?.order_no}</Text>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <Text type="secondary">订单总额</Text>
+              <Text>¥{currentOrder?.total_amount?.toLocaleString() || 0}</Text>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <Text type="secondary">已付款</Text>
+              <Text>¥{currentOrder?.paid_amount?.toLocaleString() || 0}</Text>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
+              <Text type="secondary" style={{ fontWeight: 500 }}>待付款</Text>
+              <Text strong style={{ color: '#ef4444', fontSize: 18 }}>
+                ¥{((currentOrder?.total_amount || 0) - (currentOrder?.paid_amount || 0)).toLocaleString()}
+              </Text>
+            </div>
+          </div>
           <Form.Item name="amount" label="付款金额" rules={[{ required: true, message: '请输入付款金额' }]}>
-            <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} prefix="¥" />
+            <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} prefix="¥" size="large" />
           </Form.Item>
         </Form>
       </Modal>

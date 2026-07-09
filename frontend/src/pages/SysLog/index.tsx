@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Popconfirm, Tag, message, Modal } from 'antd';
-import { DeleteOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Popconfirm, Tag, message, Modal, Typography, Space } from 'antd';
+import { DeleteOutlined, ReloadOutlined, EyeOutlined, AlertCircleOutlined } from '@ant-design/icons';
 import { getSysLogs, deleteSysLog } from '../../api/sysLog';
-import ResponsiveContainer from '../../components/ResponsiveContainer';
 import dayjs from 'dayjs';
+
+const { Title, Text } = Typography;
 
 const SysLogList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any[]>([]);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 20, total: 0 });
   const [detailVisible, setDetailVisible] = useState(false);
   const [currentLog, setCurrentLog] = useState<any>(null);
 
-  const fetchData = async (page = 1, size = 10) => {
+  const fetchData = async (page = 1, size = 20) => {
     setLoading(true);
     try {
       const res: any = await getSysLogs({ page, size });
@@ -52,6 +53,15 @@ const SysLogList: React.FC = () => {
       setDetailVisible(true);
   };
 
+  const getMethodTag = (method: string) => {
+    let color = 'blue';
+    if (method === 'GET') color = 'success';
+    if (method === 'POST') color = 'blue';
+    if (method === 'DELETE') color = 'error';
+    if (method === 'PUT') color = 'warning';
+    return <Tag color={color} style={{ padding: '4px 10px', fontSize: 12 }}>{method}</Tag>;
+  };
+
   const columns = [
     {
       title: 'ID',
@@ -68,26 +78,23 @@ const SysLogList: React.FC = () => {
       title: '方法',
       dataIndex: 'method',
       width: 100,
-      render: (method: string) => {
-          let color = 'blue';
-          if (method === 'GET') color = 'green';
-          if (method === 'POST') color = 'blue';
-          if (method === 'DELETE') color = 'red';
-          if (method === 'PUT') color = 'orange';
-          return <Tag color={color}>{method}</Tag>;
-      }
+      render: (method: string) => getMethodTag(method),
     },
     {
       title: '路径',
       dataIndex: 'path',
+      width: 300,
       ellipsis: true,
+      render: (text: string) => <Text style={{ fontSize: 13 }}>{text}</Text>,
     },
     {
       title: '状态码',
       dataIndex: 'status_code',
       width: 100,
       render: (code: number) => (
-          <Tag color={code === 200 ? 'success' : 'error'}>{code}</Tag>
+          <Tag color={code === 200 ? 'success' : code >= 500 ? 'error' : 'warning'} style={{ padding: '4px 10px', fontSize: 13 }}>
+            {code}
+          </Tag>
       )
     },
     {
@@ -97,45 +104,46 @@ const SysLogList: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 160,
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button 
-            type="link" 
-            size="small" 
-            icon={<EyeOutlined />}
-            onClick={() => showDetail(record)}
-          >
-            详情
-          </Button>
+        <Space size="small">
+          <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => showDetail(record)}>详情</Button>
           <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
-        </div>
+        </Space>
       ),
     },
   ];
 
   return (
-    <ResponsiveContainer>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>系统日志</h2>
-          <Button icon={<ReloadOutlined />} onClick={() => fetchData(pagination.current, pagination.pageSize)}>
-              刷新
-          </Button>
+    <div>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>系统日志</Title>
+          <Text type="secondary" style={{ fontSize: 14, marginTop: 6, display: 'block' }}>查看系统操作日志、API请求记录</Text>
+        </div>
+        <Button icon={<ReloadOutlined />} onClick={() => fetchData(pagination.current, pagination.pageSize)}>
+          刷新
+        </Button>
       </div>
       
-      <Card styles={{ body: { padding: 0 } }}>
+      <Card style={{ border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
         <Table
           rowKey="id"
           columns={columns}
           dataSource={data}
           loading={loading}
-          pagination={pagination}
+          pagination={{
+            ...pagination,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (t) => `共 ${t} 条`,
+          }}
           onChange={handleTableChange}
-          scroll={{ x: 800 }}
+          scroll={{ x: 1100 }}
+          size="middle"
         />
       </Card>
 
@@ -150,30 +158,64 @@ const SysLogList: React.FC = () => {
       >
           {currentLog && (
               <div>
-                  <p><strong>请求时间:</strong> {dayjs(currentLog.created_at).format('YYYY-MM-DD HH:mm:ss')}</p>
-                  <p><strong>请求方法:</strong> {currentLog.method}</p>
-                  <p><strong>请求路径:</strong> {currentLog.path}</p>
-                  <p><strong>客户端IP:</strong> {currentLog.ip}</p>
-                  <p><strong>状态码:</strong> {currentLog.status_code}</p>
-                  <div style={{ marginTop: 16 }}>
-                      <strong>错误详情:</strong>
+                  <div style={{ marginBottom: 24, padding: 20, background: '#f8fafc', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 10,
+                          background: '#e0e7ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}>
+                          <AlertCircleOutlined style={{ fontSize: 20, color: '#6366f1' }} />
+                        </div>
+                        <div>
+                          <Text strong style={{ fontSize: 16 }}>{currentLog.path}</Text>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                            {getMethodTag(currentLog.method)}
+                            <Tag color={currentLog.status_code === 200 ? 'success' : 'error'}>
+                              {currentLog.status_code}
+                            </Tag>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>请求时间</Text>
+                        <Text style={{ fontSize: 14, display: 'block' }}>{dayjs(currentLog.created_at).format('YYYY-MM-DD HH:mm:ss')}</Text>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 20 }}>
+                    <Text type="secondary" style={{ fontSize: 13 }}>客户端IP</Text>
+                    <Text style={{ fontSize: 15, marginLeft: 8 }}>{currentLog.ip || '-'}</Text>
+                  </div>
+
+                  {currentLog.error_detail && (
+                    <div style={{ marginTop: 20 }}>
+                      <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 12 }}>错误详情</Text>
                       <div style={{ 
-                          marginTop: 8, 
-                          padding: 12, 
-                          background: '#f5f5f5', 
-                          borderRadius: 4, 
+                          padding: 16, 
+                          background: '#fef2f2', 
+                          borderRadius: 10, 
                           maxHeight: 400, 
                           overflow: 'auto',
                           whiteSpace: 'pre-wrap',
-                          fontFamily: 'monospace'
+                          fontFamily: 'monospace',
+                          fontSize: 13,
+                          color: '#991b1b',
                       }}>
-                          {currentLog.error_detail || '无错误详情'}
+                          {currentLog.error_detail}
                       </div>
-                  </div>
+                    </div>
+                  )}
               </div>
           )}
       </Modal>
-    </ResponsiveContainer>
+    </div>
   );
 };
 

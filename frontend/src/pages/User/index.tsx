@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Popconfirm, Tag, message, Modal, Form, Input, Select, Radio } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Popconfirm, Tag, message, Modal, Form, Input, Select, Radio, Space, Typography } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UserOutlined } from '@ant-design/icons';
 import { getUsers, createUser, updateUser, deleteUser } from '../../api/user';
-import ResponsiveContainer from '../../components/ResponsiveContainer';
 import dayjs from 'dayjs';
+
+const { Title, Text } = Typography;
 
 const UserList: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any[]>([]);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   
-  // 弹窗相关
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [form] = Form.useForm();
@@ -79,7 +79,6 @@ const UserList: React.FC = () => {
       }
   };
 
-  // 弹窗打开时回显数据
   useEffect(() => {
       if (isModalVisible) {
           if (currentUser) {
@@ -100,78 +99,87 @@ const UserList: React.FC = () => {
     {
       title: '用户名',
       dataIndex: 'username',
+      width: 150,
+      render: (text: string) => <Text strong style={{ fontSize: 14 }}>{text}</Text>
     },
     {
         title: '昵称',
         dataIndex: 'nickname',
+        width: 150,
     },
     {
         title: '邮箱',
         dataIndex: 'email',
+        width: 200,
+        ellipsis: true,
     },
     {
       title: '角色',
       dataIndex: 'role',
+      width: 120,
       render: (role: string) => {
           let color = 'default';
           let text = '用户';
-          if (role === 'super_admin') { color = 'gold'; text = '超级管理员'; }
+          if (role === 'super_admin') { color = 'purple'; text = '超级管理员'; }
           if (role === 'admin') { color = 'blue'; text = '管理员'; }
           if (role === 'auditor') { color = 'cyan'; text = '审核员'; }
-          return <Tag color={color}>{text}</Tag>;
+          return <Tag color={color} style={{ padding: '4px 12px', fontSize: 13 }}>{text}</Tag>;
       }
     },
     {
       title: '状态',
       dataIndex: 'is_active',
+      width: 100,
       render: (active: boolean) => (
-          <Tag color={active ? 'success' : 'error'}>{active ? '启用' : '禁用'}</Tag>
+          <Tag color={active ? 'success' : 'error'} style={{ padding: '4px 12px', fontSize: 13 }}>
+            {active ? '启用' : '禁用'}
+          </Tag>
       )
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
       width: 180,
-      render: (text: string) => dayjs(text).format('YYYY-MM-DD HH:mm:ss'),
+      render: (text: string) => dayjs(text).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: '操作',
-      width: 150,
+      width: 180,
+      fixed: 'right' as const,
       render: (_: any, record: any) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button 
-            type="text" 
-            size="small" 
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
+        <Space size="small">
+          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定删除该用户吗？" onConfirm={() => handleDelete(record.id)}>
-            <Button type="text" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
-        </div>
+        </Space>
       ),
     },
   ];
 
   return (
-    <ResponsiveContainer>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>用户管理</h2>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                新增用户
-            </Button>
-            <Button icon={<ReloadOutlined />} onClick={() => fetchData(pagination.current, pagination.pageSize)}>
-                刷新
-            </Button>
-          </div>
+    <div>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>用户管理</Title>
+          <Text type="secondary" style={{ fontSize: 14, marginTop: 6, display: 'block' }}>管理系统用户、角色及权限</Text>
+        </div>
+        <Space>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={handleAdd}
+            style={{ borderRadius: 10, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}
+          >
+            新增用户
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => fetchData(pagination.current, pagination.pageSize)}>
+            刷新
+          </Button>
+        </Space>
       </div>
       
-      <Card styles={{ body: { padding: 0 } }}>
+      <Card style={{ border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
         <Table
           rowKey="id"
           columns={columns}
@@ -179,9 +187,13 @@ const UserList: React.FC = () => {
           loading={loading}
           pagination={{
               ...pagination,
-              onChange: (page, size) => fetchData(page, size)
+              onChange: (page, size) => fetchData(page, size),
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (t) => `共 ${t} 条`,
           }}
-          scroll={{ x: 800 }}
+          scroll={{ x: 1100 }}
+          size="middle"
         />
       </Card>
 
@@ -191,6 +203,9 @@ const UserList: React.FC = () => {
         onOk={handleOk}
         onCancel={() => setIsModalVisible(false)}
         confirmLoading={confirmLoading}
+        width={550}
+        okText="保存"
+        cancelText="取消"
       >
           <Form
             form={form}
@@ -202,7 +217,11 @@ const UserList: React.FC = () => {
                 name="username"
                 rules={[{ required: true, message: '请输入用户名' }]}
               >
-                  <Input disabled={!!currentUser} placeholder="请输入用户名" />
+                  <Input 
+                    disabled={!!currentUser} 
+                    placeholder="请输入用户名" 
+                    size="large"
+                  />
               </Form.Item>
               
               {!currentUser && (
@@ -211,7 +230,7 @@ const UserList: React.FC = () => {
                     name="password"
                     rules={[{ required: true, message: '请输入密码' }, { min: 6, message: '密码至少6位' }]}
                   >
-                      <Input.Password placeholder="请输入密码" />
+                      <Input.Password placeholder="请输入密码" size="large" />
                   </Form.Item>
               )}
               
@@ -219,7 +238,7 @@ const UserList: React.FC = () => {
                 label="昵称"
                 name="nickname"
               >
-                  <Input placeholder="请输入昵称" />
+                  <Input placeholder="请输入昵称" size="large" />
               </Form.Item>
 
               <Form.Item
@@ -227,7 +246,7 @@ const UserList: React.FC = () => {
                 name="email"
                 rules={[{ type: 'email', message: '请输入有效的邮箱' }]}
               >
-                  <Input placeholder="请输入邮箱" />
+                  <Input placeholder="请输入邮箱" size="large" />
               </Form.Item>
 
               <Form.Item
@@ -235,7 +254,7 @@ const UserList: React.FC = () => {
                 name="role"
                 rules={[{ required: true, message: '请选择角色' }]}
               >
-                  <Select>
+                  <Select size="large">
                       <Select.Option value="user">普通用户</Select.Option>
                       <Select.Option value="admin">管理员</Select.Option>
                       <Select.Option value="auditor">审核员</Select.Option>
@@ -255,7 +274,7 @@ const UserList: React.FC = () => {
               </Form.Item>
           </Form>
       </Modal>
-    </ResponsiveContainer>
+    </div>
   );
 };
 

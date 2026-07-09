@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Tag, Space, message, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, Tag, Space, message, Popconfirm, Card, Typography, Select } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../../api/customer';
+import dayjs from 'dayjs';
+
+const { Title, Text } = Typography;
 
 const CustomerList: React.FC = () => {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -9,34 +12,57 @@ const CustomerList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(10);
   const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailVisible, setDetailVisible] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [currentCustomer, setCurrentCustomer] = useState<any>(null);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadCustomers();
-  }, [page, size, searchText]);
+  }, [page, size, searchText, statusFilter]);
 
   const loadCustomers = async () => {
+    setLoading(true);
     try {
-      const response = await getCustomers({ page, size, name: searchText });
-      setCustomers(response.data.list || []);
-      setTotal(response.data.total || 0);
+      const params: any = { page, size, name: searchText };
+      if (statusFilter) params.status = statusFilter;
+      const response: any = await getCustomers(params);
+      setCustomers(response.list || []);
+      setTotal(response.total || 0);
     } catch (error) {
       console.error('Failed to load customers:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCreate = () => {
     setEditingCustomer(null);
     form.resetFields();
+    form.setFieldsValue({ status: 'active' });
     setModalVisible(true);
   };
 
   const handleEdit = (record: any) => {
     setEditingCustomer(record);
-    form.setFieldsValue(record);
+    form.setFieldsValue({
+      name: record.name,
+      contact_name: record.contact_name,
+      phone: record.phone,
+      email: record.email,
+      address: record.address,
+      tax_id: record.tax_id,
+      status: record.status,
+    });
     setModalVisible(true);
+  };
+
+  const handleViewDetail = (record: any) => {
+    setCurrentCustomer(record);
+    setDetailVisible(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -62,28 +88,52 @@ const CustomerList: React.FC = () => {
       setModalVisible(false);
       loadCustomers();
     } catch (error) {
-      message.error('操作失败');
+      console.error('Submit failed:', error);
     }
   };
 
+  const handleReset = () => {
+    setSearchText('');
+    setStatusFilter(undefined);
+    setPage(1);
+  };
+
   const columns = [
-    { title: '客户名称', dataIndex: 'name', key: 'name' },
-    { title: '联系人', dataIndex: 'contact_name', key: 'contact_name' },
-    { title: '电话', dataIndex: 'phone', key: 'phone' },
-    { title: '邮箱', dataIndex: 'email', key: 'email' },
-    { title: '地址', dataIndex: 'address', key: 'address' },
-    { title: '税号', dataIndex: 'tax_id', key: 'tax_id' },
-    { title: '状态', dataIndex: 'status', key: 'status', render: (val: string) => (
-      <Tag color={val === 'active' ? 'green' : 'gray'}>{val === 'active' ? '启用' : '停用'}</Tag>
-    )},
+    { 
+      title: '客户', 
+      dataIndex: 'name', 
+      key: 'name', 
+      width: 180,
+      render: (text: string) => <Text strong style={{ fontSize: 14 }}>{text}</Text>
+    },
+    { title: '联系人', dataIndex: 'contact_name', key: 'contact_name', width: 120 },
+    { title: '电话', dataIndex: 'phone', key: 'phone', width: 140 },
+    { title: '邮箱', dataIndex: 'email', key: 'email', width: 200, ellipsis: true },
+    { title: '地址', dataIndex: 'address', key: 'address', width: 220, ellipsis: true },
+    { title: '税号', dataIndex: 'tax_id', key: 'tax_id', width: 150 },
+    { 
+      title: '状态', 
+      dataIndex: 'status', 
+      key: 'status', 
+      width: 100, 
+      render: (val: string) => (
+        <Tag color={val === 'active' ? 'success' : 'error'} style={{ padding: '4px 12px', fontSize: 13 }}>
+          {val === 'active' ? '启用' : '停用'}
+        </Tag>
+      ),
+    },
+    { title: '创建时间', dataIndex: 'created_at', key: 'created_at', width: 180, render: (val: string) => dayjs(val).format('YYYY-MM-DD HH:mm') },
     {
       title: '操作',
       key: 'action',
-      render: (text: any, record: any) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
+      width: 200,
+      fixed: 'right' as const,
+      render: (_: any, record: any) => (
+        <Space size="small">
+          <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record)}>详情</Button>
+          <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)}>
-            <Button icon={<DeleteOutlined />} danger>删除</Button>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />}>删除</Button>
           </Popconfirm>
         </Space>
       ),
@@ -92,56 +142,162 @@ const CustomerList: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>客户管理</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>新增客户</Button>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <Title level={2} style={{ margin: 0, fontWeight: 700, color: '#1e293b' }}>客户管理</Title>
+          <Text type="secondary" style={{ fontSize: 14, marginTop: 6, display: 'block' }}>管理客户信息、联系人及交易记录</Text>
+        </div>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          onClick={handleCreate}
+          size="large"
+          style={{ borderRadius: 10, boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}
+        >
+          新增客户
+        </Button>
       </div>
       
-      <Input.Search
-        placeholder="搜索客户名称"
-        prefix={<SearchOutlined />}
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        onSearch={() => setPage(1)}
-        style={{ marginBottom: 16, width: 300 }}
-      />
+      <Card style={{ marginBottom: 24, border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 280 }}>
+            <Input.Search
+              placeholder="搜索客户名称"
+              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onSearch={() => setPage(1)}
+              allowClear
+              style={{ width: '100%', maxWidth: 320 }}
+            />
+          </div>
+          <Select
+            placeholder="状态"
+            value={statusFilter}
+            onChange={(v) => { setStatusFilter(v); setPage(1); }}
+            style={{ width: 160 }}
+            allowClear
+            bordered={false}
+            size="large"
+          >
+            <Select.Option value="active">启用</Select.Option>
+            <Select.Option value="inactive">停用</Select.Option>
+          </Select>
+          <Button 
+            onClick={handleReset}
+            bordered={false}
+            style={{ color: '#64748b' }}
+          >
+            重置筛选
+          </Button>
+        </div>
+      </Card>
       
-      <Table
-        dataSource={customers}
-        columns={columns}
-        rowKey="id"
-        pagination={{ current: page, pageSize: size, total, onChange: (p, s) => { setPage(p); setSize(s); } }}
-      />
+      <Card style={{ border: 'none', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)', borderRadius: 16 }}>
+        <Table
+          dataSource={customers}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 1300 }}
+          pagination={{ 
+            current: page, 
+            pageSize: size, 
+            total, 
+            onChange: (p, s) => { setPage(p); setSize(s); },
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (t) => `共 ${t} 条`,
+          }}
+          size="middle"
+        />
+      </Card>
 
       <Modal
         title={editingCustomer ? '编辑客户' : '新增客户'}
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmit}
+        width={600}
+        destroyOnClose
+        okText="保存"
+        cancelText="取消"
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="客户名称" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="name" label="客户名称" rules={[{ required: true, message: '请输入客户名称' }]}>
+            <Input placeholder="请输入客户名称" size="large" />
           </Form.Item>
           <Form.Item name="contact_name" label="联系人">
-            <Input />
+            <Input placeholder="联系人姓名" size="large" />
           </Form.Item>
           <Form.Item name="phone" label="电话">
-            <Input />
+            <Input placeholder="联系电话" size="large" />
           </Form.Item>
           <Form.Item name="email" label="邮箱">
-            <Input />
+            <Input placeholder="电子邮箱" size="large" />
           </Form.Item>
           <Form.Item name="address" label="地址">
-            <Input.TextArea />
+            <Input.TextArea rows={3} placeholder="详细地址" />
           </Form.Item>
           <Form.Item name="tax_id" label="税号">
-            <Input />
+            <Input placeholder="税务登记号" size="large" />
           </Form.Item>
           <Form.Item name="status" label="状态">
-            <Input />
+            <Select size="large">
+              <Select.Option value="active">启用</Select.Option>
+              <Select.Option value="inactive">停用</Select.Option>
+            </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="客户详情"
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={null}
+        width={500}
+      >
+        {currentCustomer && (
+          <div style={{ padding: '16px 0' }}>
+            <div style={{ marginBottom: 20 }}>
+              <Text strong style={{ fontSize: 20, color: '#1e293b', display: 'block', marginBottom: 8 }}>
+                {currentCustomer.name}
+              </Text>
+              <Tag color={currentCustomer.status === 'active' ? 'success' : 'error'}>
+                {currentCustomer.status === 'active' ? '启用' : '停用'}
+              </Tag>
+            </div>
+            
+            <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20 }}>
+              <div style={{ marginBottom: 16 }}>
+                <Text type="secondary" style={{ fontSize: 13 }}>联系人</Text>
+                <Text style={{ fontSize: 15, marginLeft: 8 }}>{currentCustomer.contact_name || '-'}</Text>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Text type="secondary" style={{ fontSize: 13 }}>电话</Text>
+                <Text style={{ fontSize: 15, marginLeft: 8 }}>{currentCustomer.phone || '-'}</Text>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Text type="secondary" style={{ fontSize: 13 }}>邮箱</Text>
+                <Text style={{ fontSize: 15, marginLeft: 8 }}>{currentCustomer.email || '-'}</Text>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <Text type="secondary" style={{ fontSize: 13 }}>税号</Text>
+                <Text style={{ fontSize: 15, marginLeft: 8 }}>{currentCustomer.tax_id || '-'}</Text>
+              </div>
+              <div>
+                <Text type="secondary" style={{ fontSize: 13 }}>地址</Text>
+                <Text style={{ fontSize: 15, marginLeft: 8, display: 'block', marginTop: 8 }}>{currentCustomer.address || '-'}</Text>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <Button onClick={() => setDetailVisible(false)}>关闭</Button>
+              <Button type="primary" onClick={() => { handleEdit(currentCustomer); setDetailVisible(false); }}>编辑</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

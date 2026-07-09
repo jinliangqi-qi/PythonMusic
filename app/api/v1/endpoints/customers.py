@@ -75,3 +75,13 @@ async def delete_customer(
         raise HTTPException(status_code=404, detail="Customer not found")
     customer = await crud_customer.remove(db, id=customer_id)
     return success(data=customer)
+
+@router.get("/all", response_model=ResponseBase[List[CustomerInfo]])
+async def read_all_customers(
+    db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query("active", description="状态筛选"),
+) -> Any:
+    customers = await crud_customer.get_multi(
+        db, skip=0, limit=1000, status=status
+    )
+    return success(data=customers)

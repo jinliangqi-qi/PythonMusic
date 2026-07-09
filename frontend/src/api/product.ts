@@ -30,3 +30,7 @@ export const deleteProduct = (id: number) => {
 export const getLowStockProducts = () => {
   return request.get('/products/low-stock/');
 };
+
+export const getAllProducts = (status?: string) => {
+  return request.get('/products/all', { params: { status } });
+};

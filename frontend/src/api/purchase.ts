@@ -30,6 +30,14 @@ export const receivePurchase = (id: number) => {
   return request.post(`/purchases/${id}/receive`);
 };
 
+export const cancelPurchase = (id: number) => {
+  return request.post(`/purchases/${id}/cancel`);
+};
+
+export const payPurchase = (id: number, amount: number) => {
+  return request.post(`/purchases/${id}/pay`, null, { params: { amount } });
+};
+
 export const deletePurchase = (id: number) => {
   return request.delete(`/purchases/${id}/`);
 };

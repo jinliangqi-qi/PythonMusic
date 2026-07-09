@@ -10,7 +10,9 @@ import {
   UsersOutlined,
   ShoppingOutlined,
   StockOutlined,
-  BugOutlined
+  BugOutlined,
+  UnorderedListOutlined,
+  ShopOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
@@ -105,6 +107,16 @@ const BasicLayout: React.FC = () => {
       key: '/inventory',
       icon: <StockOutlined />,
       label: '库存管理',
+    },
+    {
+      key: '/categories',
+      icon: <UnorderedListOutlined />,
+      label: '分类管理',
+    },
+    {
+      key: '/warehouses',
+      icon: <ShopOutlined />,
+      label: '仓库管理',
     },
     {
       key: '/users',

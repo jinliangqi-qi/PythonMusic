@@ -14,6 +14,8 @@ import SalesList from '../pages/Sales';
 import InventoryList from '../pages/Inventory';
 import SysLogList from '../pages/SysLog';
 import UserList from '../pages/User';
+import CategoryList from '../pages/Category';
+import WarehouseList from '../pages/Warehouse';
 import { Result, Button } from 'antd';
 
 // 403 页面
@@ -71,6 +73,10 @@ const AppRouter: React.FC = () => {
             <Route path="/sales" element={<SalesList />} />
             
             <Route path="/inventory" element={<InventoryList />} />
+            
+            <Route path="/categories" element={<CategoryList />} />
+            
+            <Route path="/warehouses" element={<WarehouseList />} />
             
             <Route path="/sys_logs" element={
                 <PrivateRoute roles={['super_admin', 'admin']}>

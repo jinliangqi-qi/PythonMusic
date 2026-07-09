@@ -160,6 +160,63 @@ class CRUDSalesOrder:
         await db.refresh(order)
         return order
 
+    async def cancel(self, db: AsyncSession, id: int, operator: str = "") -> SalesOrder:
+        order = await self.get(db, id=id)
+        if not order:
+            raise ValueError("Sales order not found")
+            
+        if order.status in ["completed", "cancelled"]:
+            raise ValueError(f"Cannot cancel order with status {order.status}")
+        
+        if order.status in ["shipped", "completed"]:
+            for item in order.items:
+                product = await crud_product.get(db, id=item.product_id)
+                if product and item.shipped_qty > 0:
+                    before_qty = product.stock_qty
+                    await crud_product.update_stock(db, product.id, item.shipped_qty)
+                    
+                    inventory = Inventory(
+                        product_id=product.id,
+                        change_type="adjust",
+                        change_qty=item.shipped_qty,
+                        before_qty=before_qty,
+                        after_qty=before_qty + item.shipped_qty,
+                        related_order_no=order.order_no,
+                        operator=operator,
+                        remark=f"取消销售单: {order.order_no}"
+                    )
+                    db.add(inventory)
+        
+        order.status = "cancelled"
+        await db.commit()
+        await db.refresh(order)
+        return order
+
+    async def receive_payment(self, db: AsyncSession, id: int, amount: float, operator: str = "") -> SalesOrder:
+        order = await self.get(db, id=id)
+        if not order:
+            raise ValueError("Sales order not found")
+            
+        if order.status == "cancelled":
+            raise ValueError("Cannot receive payment for cancelled order")
+        
+        if amount <= 0:
+            raise ValueError("Payment amount must be greater than 0")
+        
+        new_paid = order.paid_amount + amount
+        if new_paid > order.total_amount:
+            raise ValueError("Payment amount exceeds total amount")
+        
+        order.paid_amount = new_paid
+        
+        if new_paid >= order.total_amount:
+            if order.status in ["pending", "approved", "shipped"]:
+                order.status = "paid"
+        
+        await db.commit()
+        await db.refresh(order)
+        return order
+
     async def remove(self, db: AsyncSession, *, id: int) -> SalesOrder:
         query = select(SalesOrder).where(SalesOrder.id == id)
         result = await db.execute(query)

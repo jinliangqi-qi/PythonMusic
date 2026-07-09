@@ -111,6 +111,33 @@ async def receive_purchase(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/{purchase_id}/cancel")
+async def cancel_purchase(
+    *,
+    db: AsyncSession = Depends(get_db),
+    purchase_id: int,
+    current_user: User = Depends(deps.get_current_active_admin),
+) -> Any:
+    try:
+        order = await crud_purchase.cancel(db, id=purchase_id, operator=current_user.username)
+        return success(data=format_purchase_order(order))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/{purchase_id}/pay")
+async def pay_purchase(
+    *,
+    db: AsyncSession = Depends(get_db),
+    purchase_id: int,
+    amount: float = Query(..., gt=0, description="付款金额"),
+    current_user: User = Depends(deps.get_current_active_admin),
+) -> Any:
+    try:
+        order = await crud_purchase.pay(db, id=purchase_id, amount=amount, operator=current_user.username)
+        return success(data=format_purchase_order(order))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.delete("/{purchase_id}", response_model=ResponseBase[PurchaseOrderInfo])
 async def delete_purchase(
     *,

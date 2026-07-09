@@ -24,3 +24,7 @@ export const updateCustomer = (id: number, data: any) => {
 export const deleteCustomer = (id: number) => {
   return request.delete(`/customers/${id}/`);
 };
+
+export const getAllCustomers = (status?: string) => {
+  return request.get('/customers/all', { params: { status } });
+};

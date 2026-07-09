@@ -93,3 +93,13 @@ async def get_low_stock_products(
 ) -> Any:
     products = await crud_product.get_low_stock_products(db)
     return success(data=products)
+
+@router.get("/all", response_model=ResponseBase[List[ProductInfo]])
+async def get_all_products(
+    db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query("active", description="状态筛选"),
+) -> Any:
+    products = await crud_product.get_multi(
+        db, skip=0, limit=1000, status=status
+    )
+    return success(data=products)

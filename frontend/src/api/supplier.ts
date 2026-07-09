@@ -24,3 +24,7 @@ export const updateSupplier = (id: number, data: any) => {
 export const deleteSupplier = (id: number) => {
   return request.delete(`/suppliers/${id}/`);
 };
+
+export const getAllSuppliers = (status?: string) => {
+  return request.get('/suppliers/all', { params: { status } });
+};

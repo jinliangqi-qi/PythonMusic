@@ -75,3 +75,13 @@ async def delete_supplier(
         raise HTTPException(status_code=404, detail="Supplier not found")
     supplier = await crud_supplier.remove(db, id=supplier_id)
     return success(data=supplier)
+
+@router.get("/all", response_model=ResponseBase[List[SupplierInfo]])
+async def read_all_suppliers(
+    db: AsyncSession = Depends(get_db),
+    status: Optional[str] = Query("active", description="状态筛选"),
+) -> Any:
+    suppliers = await crud_supplier.get_multi(
+        db, skip=0, limit=1000, status=status
+    )
+    return success(data=suppliers)

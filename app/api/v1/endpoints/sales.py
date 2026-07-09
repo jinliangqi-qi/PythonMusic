@@ -127,6 +127,33 @@ async def complete_sales(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/{sales_id}/cancel")
+async def cancel_sales(
+    *,
+    db: AsyncSession = Depends(get_db),
+    sales_id: int,
+    current_user: User = Depends(deps.get_current_active_admin),
+) -> Any:
+    try:
+        order = await crud_sales.cancel(db, id=sales_id, operator=current_user.username)
+        return success(data=format_sales_order(order))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/{sales_id}/receive-payment")
+async def receive_sales_payment(
+    *,
+    db: AsyncSession = Depends(get_db),
+    sales_id: int,
+    amount: float = Query(..., gt=0, description="收款金额"),
+    current_user: User = Depends(deps.get_current_active_admin),
+) -> Any:
+    try:
+        order = await crud_sales.receive_payment(db, id=sales_id, amount=amount, operator=current_user.username)
+        return success(data=format_sales_order(order))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.delete("/{sales_id}", response_model=ResponseBase[SalesOrderInfo])
 async def delete_sales(
     *,

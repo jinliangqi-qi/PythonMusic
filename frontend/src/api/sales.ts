@@ -34,6 +34,14 @@ export const completeSales = (id: number) => {
   return request.post(`/sales/${id}/complete`);
 };
 
+export const cancelSales = (id: number) => {
+  return request.post(`/sales/${id}/cancel`);
+};
+
+export const receiveSalesPayment = (id: number, amount: number) => {
+  return request.post(`/sales/${id}/receive-payment`, null, { params: { amount } });
+};
+
 export const deleteSales = (id: number) => {
   return request.delete(`/sales/${id}/`);
 };

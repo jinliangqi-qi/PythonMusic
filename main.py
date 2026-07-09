@@ -13,7 +13,7 @@ from app.db.session import get_db, engine
 from app.db.base import Base
 from app.core.exceptions import register_exception_handlers, BusinessException
 from app.schemas.response import success, fail
-from app.api.v1.endpoints import auth, user, common, sys_logs, products, suppliers, customers, purchases, sales, inventory, dashboard
+from app.api.v1.endpoints import auth, user, common, sys_logs, products, suppliers, customers, purchases, sales, inventory, dashboard, categories, warehouses
 from app.crud.crud_user import crud_user
 from app.schemas.user import UserCreate
 from app.core.middleware import LogMiddleware
@@ -64,6 +64,8 @@ app.include_router(purchases.router, prefix=f"{settings.API_V1_STR}/purchases", 
 app.include_router(sales.router, prefix=f"{settings.API_V1_STR}/sales", tags=["sales"])
 app.include_router(inventory.router, prefix=f"{settings.API_V1_STR}/inventory", tags=["inventory"])
 app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["dashboard"])
+app.include_router(categories.router, prefix=f"{settings.API_V1_STR}/categories", tags=["categories"])
+app.include_router(warehouses.router, prefix=f"{settings.API_V1_STR}/warehouses", tags=["warehouses"])
 
 @app.on_event("startup")
 async def startup_event():
